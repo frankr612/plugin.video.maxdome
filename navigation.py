@@ -224,8 +224,8 @@ class Navigation:
     def contextMenuItemsForAsset(self, asset):
         listitems = []
         #ZAHLUNGSPFLICHTIGE INHALTE
-#        if not asset['green']:
-#            listitems.append(('Video leihen/kaufen', 'RunPlugin(' + self.buildUrl({'action': 'buy', 'id': str(asset['id'])}) + ')'))
+        if not asset['green']:
+            listitems.append(('Video leihen/kaufen', 'RunPlugin(' + self.buildUrl({'action': 'buy', 'id': str(asset['id'])}) + ')'))
         #MERKLISTE
         mem_param = ''
         mem_str = ''
@@ -380,6 +380,7 @@ class Navigation:
 
     def playAsset(self, assetid):
         asset_info = self.mxd.Assets.getAssetInformation(assetid)
+        asset_class = maxdome.getAssetClass(asset_info['@class'])
         #ASSET WITHOUT ACTIVE LICENSE - BUY/RENT?
         if not asset_info['green']:
             options = self.showSalesOptions(asset_info)
@@ -396,6 +397,9 @@ class Navigation:
                             
             else:
                 return False
+
+        if asset_class != 'movie' or asset_class != 'tvepisode':
+            return False
 
         if self.mxd.Assets.orderAsset(assetid):
             li = xbmcgui.ListItem(path=self.mxd.video_url)

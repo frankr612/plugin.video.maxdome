@@ -60,7 +60,7 @@ if params:
             mas.Assets.deleteFromNotepad(params['id'])
             xbmc.executebuiltin('Container.Refresh')
         elif params['action'] == 'buy':
-            nav.showSalesOptions(params['id'])
+            nav.playAsset(params['id'])
 else:
     nav.mainMenu()
 
