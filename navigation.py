@@ -296,6 +296,17 @@ class Navigation:
 
         return info
 
+    def getPoster(self, data):
+        img = ''        
+        if not 'coverList' in data:
+            return img
+        for item in data['coverList']:
+            img = item['url'].replace('__WIDTH__', poster_width).replace('__HEIGHT__', poster_height)
+            if item['usageType'] == 'poster':
+                return img
+
+        return img
+
     def filterSeriesFromSeasons(self, data):
         series_dict = {}
         for item in data:
@@ -352,7 +363,9 @@ class Navigation:
                 li.addContextMenuItems(self.contextMenuItemsForAsset(item), replaceItems=False)
             li.setProperty('IsPlayable', str(isPlayable))
             li.setInfo('video', self.getInfoItem(item))
-            li.setArt({'poster': item['coverList'][1]['url'].replace('__WIDTH__', poster_width).replace('__HEIGHT__', poster_height)})
+            poster = self.getPoster(item)
+            if not poster == '':
+                li.setArt({'poster': poster})
             xbmcplugin.addDirectoryItem(handle=addon_handle, url=url,
                                 listitem=li, isFolder=(not isPlayable))
 
