@@ -225,7 +225,16 @@ class Navigation:
         listitems = []
         #ZAHLUNGSPFLICHTIGE INHALTE
         if not asset['green']:
-            listitems.append(('Video leihen/kaufen', 'RunPlugin(' + self.buildUrl({'action': 'buy', 'id': str(asset['id'])}) + ')'))
+            asset_class = maxdome.getAssetClass(asset['@class'])
+            strTitle = ''
+            if asset_class == 'movie':
+                strTitle = 'Film '
+            elif asset_class == 'tvseason':
+                strTitle = 'Staffel '
+            elif asset_class == 'tvepisode':
+                strTitle = 'Episode '
+            if not asset_class == 'tvshow' and not asset_class == 'theme':
+                listitems.append((strTitle + 'leihen/kaufen', 'RunPlugin(' + self.buildUrl({'action': 'buy', 'id': str(asset['id'])}) + ')'))
         #MERKLISTE
         mem_param = ''
         mem_str = ''
@@ -368,11 +377,17 @@ class Navigation:
 
     def showSalesOptions(self, asset):
         sales_options = self.mxd.Assets.getSalesOptions(asset)
+        asset_class = maxdome.getAssetClass(asset['@class'])
         dlg = xbmcgui.Dialog()
         dlgitems = []
         for item in sales_options:
             dlgitems.append(item['label'])
-        s = dlg.select(xbmc.getInfoLabel('ListItem.Title'), dlgitems)
+        dlgtitle = asset['title']
+        if asset_class == 'tvseason':
+           dlgtitle += ' - Staffel: ' + str(asset['number'])
+        elif asset_class == 'tvepisode':
+           dlgtitle += ' - Episode: ' + str(asset['episodeTitle'])
+        s = dlg.select(dlgtitle, dlgitems)
         if s<0:
             return None
 
