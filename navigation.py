@@ -426,7 +426,7 @@ class Navigation:
             else:
                 return False
 
-        if asset_class != 'movie' or asset_class != 'tvepisode':
+        if asset_class != 'movie' and asset_class != 'tvepisode':
             return False
 
         if self.mxd.Assets.orderAsset(assetid):
