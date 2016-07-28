@@ -1,7 +1,6 @@
 # plugin.video.maxdome
 
-Kodi Addon für Maxdome - https://www.maxdome.de
-
+Inoffizielles Kodi-Addon für Maxdome
 Voraussetzungen:
 
 - Kodi 17
