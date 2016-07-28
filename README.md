@@ -1,6 +1,6 @@
 # plugin.video.maxdome
 
-Kodi Addon für Maxdome - https//www.maxdome.de
+Kodi Addon für Maxdome - https://www.maxdome.de
 
 Voraussetzungen:
 
