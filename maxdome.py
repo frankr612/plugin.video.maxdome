@@ -86,7 +86,8 @@ class MaxdomeSession:
         headers = {'accept':'application/vnd.maxdome.im.v8+json', 'Accept-Encoding':'gzip, deflate, sdch', 'Accept-Language':'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4', 'client':'mxd_package', 'clienttype': 'webportal', 'Connection': 'keep-alive', 'content-type':'application/json', 'customerId':self.customer_id, 'language':'de_' + self.region.upper(), 'Maxdome-Origin':'maxdome.' + self.region, 'mxd-session':self.session.cookies['mxd-bbe-session'], 'platform':'web'}
         r = self.session.get(self.api_url + '/interfacemanager-2.1/mxd/customer/' + self.customer_id + '/preference', headers=headers)
         data = r.json()
-        self.payment_type = data['paymentType'].lower()
+        if 'paymentType' in data:
+            self.payment_type = data['paymentType'].lower()
         self.session.cookies['payment'] = self.payment_type
         self.session.cookies['quality'] = data['orderQuality']
 
