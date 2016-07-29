@@ -13,6 +13,7 @@ Einstellungen:
 
 - E-Mail/Passwort: Logindaten des Maxdome-Accounts
 - Region: DE für Nutzer aus Deutschland, AT für Österreich
+- Zahlungsmethode: Derzeit kann nur PayPal genutzt werden
 - Dolby Digital 5.1: Falls verfügbar, werden die Inhalte mit Dolby Digital 5.1 Ton angefordert
 - Nur Paketinhalte anzeigen: Zeigt Standardmäßig nur Inhalte an, die im Maxdome Abo enthalten sind. Bei Deaktivierung werden auch alle weiteren Bezahlinhalte angezeigt.
 - In Bibliothek integrieren: Videos von Maxdome können als .strm Datei exportiert und dann in die Kodi Bibliothek aufgenommen werden. Gespeichert werden die .strm-Datein im gewähltem Pfad.

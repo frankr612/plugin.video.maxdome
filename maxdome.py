@@ -37,7 +37,8 @@ class MaxdomeSession:
         self.username = username
         self.password = password
         self.customer_id = ''
-        self.payment_type = ''
+        self.payment_type = addon.getSetting('payment').lower()
+        self.order_quality = '2'
         self.session.headers.setdefault('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36')
 
         #Maxdome URLs
@@ -52,17 +53,16 @@ class MaxdomeSession:
             with open(self.cookie_path) as f:
                 cookies = requests.utils.cookiejar_from_dict(pickle.load(f))
                 self.session.cookies = cookies
-                self.payment_type = self.session.cookies['payment']
                 
         if not self.isLoggedIn():
             self.session.cookies.clear_session_cookies()
             if self.login():
-                self.getPreferences()
                 self.session.cookies['mxd-ua'] = '%7B%22os%22%3A%7B%22name%22%3A%22Linux%22%2C%22version%22%3A%22x86_64%22%7D%2C%22browser%22%3A%7B%22name%22%3A%22Chrome%22%2C%22version%22%3A%2248.0.2564.116%22%2C%22major%22%3A%2248%22%2C%22architecture%22%3A%2232%22%7D%7D'
                 with open(self.cookie_path, 'w') as f:
                     pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
 
         self.Assets = MaxdomeAssets(self)
+        self.getPreferences()
 
     def isLoggedIn(self):
         r = self.session.get(self.baseurl + '/mein-account')
@@ -86,10 +86,8 @@ class MaxdomeSession:
         headers = {'accept':'application/vnd.maxdome.im.v8+json', 'Accept-Encoding':'gzip, deflate, sdch', 'Accept-Language':'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4', 'client':'mxd_package', 'clienttype': 'webportal', 'Connection': 'keep-alive', 'content-type':'application/json', 'customerId':self.customer_id, 'language':'de_' + self.region.upper(), 'Maxdome-Origin':'maxdome.' + self.region, 'mxd-session':self.session.cookies['mxd-bbe-session'], 'platform':'web'}
         r = self.session.get(self.api_url + '/interfacemanager-2.1/mxd/customer/' + self.customer_id + '/preference', headers=headers)
         data = r.json()
-        if 'paymentType' in data:
-            self.payment_type = data['paymentType'].lower()
-        self.session.cookies['payment'] = self.payment_type
-        self.session.cookies['quality'] = data['orderQuality']
+        print 'MAXDOME PREFS'
+        print r.text
 
     def login(self):
         headers = {'accept': '*/*', 'accept-encoding': 'gzip, deflate', 'Accept-Language':'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4', 'connection': 'keep-alive', 'content-type': 'application/x-www-form-urlencoded; charset=UTF-8', 'X-Requested-With': 'XMLHttpRequest', 'Origin': 'https://www.maxdome.' + self.region, 'Referer': 'https://www.maxdome.' + self.region}
@@ -97,12 +95,6 @@ class MaxdomeSession:
 
         r = self.session.post(self.login_url, headers=headers, data=payload)
         if 'Erfolgreich angemeldet' in r.text:
-            #Save cookies
-#            self.session.cookies['quality'] = self.getPreferences()['orderQuality']
-#            self.session.cookies['mxd-ua'] = '%7B%22os%22%3A%7B%22name%22%3A%22Linux%22%2C%22version%22%3A%22x86_64%22%7D%2C%22browser%22%3A%7B%22name%22%3A%22Chrome%22%2C%22version%22%3A%2248.0.2564.116%22%2C%22major%22%3A%2248%22%2C%22architecture%22%3A%2232%22%7D%7D'
-#            with open(self.cookie_path, 'w') as f:
-#                pickle.dump(requests.utils.dict_from_cookiejar(self.session.cookies), f)
-
             return self.isLoggedIn()
 
         return False
@@ -171,7 +163,7 @@ class MaxdomeAssets:
         headers = self.api_headers
         headers['accept-language'] = 'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4'
         url = '%s/interfacemanager-2.1/mxd/mediaauth/%s/video/%s/%s/start' % (self.session.api_url, self.session.customer_id, str(assetId), orderQuality)
-        payload = {'@class':'StartStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':'2'}}
+        payload = {'@class':'StartStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':self.session.order_quality}}
         r = self.session.session.post(url, headers=headers, data=json.dumps(payload))
         data = r.json()
         if '@class' in data:
@@ -198,7 +190,7 @@ class MaxdomeAssets:
         headers = self.api_headers
         headers['accept-language'] = 'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4'
         url = '%s/interfacemanager-2.1/mxd/mediaauth/%s/video/%s/%s/selectPayment' % (self.session.api_url, self.session.customer_id, str(assetid), orderQuality)
-        payload = {'@class':'SelectPaymentAnswerStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':'2'},'selectedPaymentType':self.session.payment_type}
+        payload = {'@class':'SelectPaymentAnswerStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':self.session.order_quality},'selectedPaymentType':self.session.payment_type}
         r = self.session.session.post(url, headers=headers, data=json.dumps(payload))
         if r.status_code != 200:
             return False
@@ -209,7 +201,7 @@ class MaxdomeAssets:
         headers = self.api_headers
         headers['accept-language'] = 'de-DE,de;q=0.8,en-US;q=0.6,en;q=0.4'
         url = '%s/interfacemanager-2.1/mxd/mediaauth/%s/video/%s/%s/confirm%s' % (self.session.api_url, self.session.customer_id, str(assetid), orderQuality, self.session.payment_type.title())
-        payload = {'@class':'Confirm' + self.session.payment_type.title() + 'AnswerStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':'2'},'selectedPaymentType':self.session.payment_type}
+        payload = {'@class':'Confirm' + self.session.payment_type.title() + 'AnswerStep','baseData':{'deliveryType':'streaming','licenseType':orderType,'quality':self.session.order_quality},'selectedPaymentType':self.session.payment_type}
         r = self.session.session.post(url, headers=headers, data=json.dumps(payload))
         if r.status_code != 200:
             return False

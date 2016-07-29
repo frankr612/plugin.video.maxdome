@@ -406,6 +406,13 @@ class Navigation:
 
         return sales_options[s]
 
+    def paymentOptionAvailable(self, data):
+        for item in data['paymentMethodList']:
+            if self.mxd.payment_type == item['type']:
+                return True
+
+        return False
+
     def playAsset(self, assetid):
         asset_info = self.mxd.Assets.getAssetInformation(assetid)
         asset_class = maxdome.getAssetClass(asset_info['@class'])
@@ -417,6 +424,9 @@ class Navigation:
                 if '@class' in r:
                     if r['@class'] == 'SelectPaymentQuestionStep':
                         dlg = xbmcgui.Dialog()
+                        if not self.paymentOptionAvailable(r):
+                            dlg.ok('Fehler', 'Video kann nicht per ' + self.mxd.payment_type.title() + ' bezahlt werden.')
+                            return False
                         doOrder = dlg.yesno('Maxdome Store', r['title'], r['priceInfo'], 'Zahlungsmethode: ' + self.mxd.payment_type.title())
                         if doOrder:
                             if not self.mxd.Assets.confirmPayment(assetid, options['orderType'], options['orderQuality']):
